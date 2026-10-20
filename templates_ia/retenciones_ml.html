@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis ML - Retenciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Efecto de pulso IA - VERSIÓN NARANJA */
+    .pulse-dot {
+        width: 7px;
+        height: 7px;
+        background-color: #ea580c;
+        border-radius: 50%;
+        position: relative;
+    }
+    
+    @keyframes pulseWave {
+        0% { transform: scale(0.8); opacity: 1; }
+        100% { transform: scale(2.2); opacity: 0; }
+    }
+    
+    
+
+    /* Efecto Glassmorphism Estándar */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+    }
+
+    /* Tablas Hover Sólidas */
+    .table-hover-row:hover {
+        background: rgba(248, 250, 252, 1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ========================================== -->
+<!-- ENCABEZADO AMPLIO CENTRADO EN 3 COLUMNAS -->
+<!-- ========================================== -->
+<div style="background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.7); border-radius: 12px; padding: 24px 30px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);">
+    
+    <!-- Columna Izquierda (Badge IA) -->
+    <div style="display: flex; gap: 10px; justify-self: start; align-self: start;">
+        <span style="background: rgba(234, 88, 12, 0.15); color: #ea580c; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; border: 1px solid rgba(234, 88, 12, 0.3); display: flex; align-items: center; gap: 6px;">
+            <span class="pulse-dot"></span> AUDITORÍA ML (IA)
+        </span>
+    </div>
+    
+    <!-- Columna Central (Título Tecnológico) -->
+    <div style="text-align: center;">
+        <h1 style="color: #c2410c; font-size: 26px; font-weight: 900; margin: 0 0 4px 0; letter-spacing: -0.5px; text-transform: uppercase;">Retenciones Outbound</h1>
+        <p style="color: #475569; font-size: 14px; margin: 0; font-weight: 600;">Modelos de Inteligencia Artificial y Clustering</p>
+    </div>
+    
+    <!-- Columna Derecha (Filtro Compacto) -->
+    <div style="background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); justify-self: end; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <form method="GET" action="/retenciones/ml" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+            <input type="date" name="fecha" value="{{ fecha_analisis }}" style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #0f172a; outline: none; cursor: pointer; font-family: 'Inter', sans-serif;">
+            <button type="submit" style="background: #ea580c; color: white; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.2s;">Analizar</button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 1. KPIs DE SALUD OPERATIVA (HEALTH SCORE) -->
+<!-- ========================================== -->
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+    
+    <div class="glass-card" style="padding: 16px 20px; border-left: 4px solid #ea580c; text-align: center;">
+        <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">AGENTES PERFILADOS (K-MEANS)</div>
+        <div style="font-size: 28px; font-weight: 900; color: #ea580c; margin-bottom: 2px;">{{ total_agentes_perfilados }}</div>
+        <div style="font-size: 11px; font-weight: 600; color: #94a3b8;">Mapeados en el espacio vectorial</div>
+    </div>
+
+    <div class="glass-card" style="padding: 16px 20px; border-left: 4px solid #ef4444; text-align: center;">
+        <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">MICRO-ANOMALÍAS (I. FOREST)</div>
+        <div style="font-size: 28px; font-weight: 900; color: #ef4444; margin-bottom: 2px;">{{ total_micro_anomalias }}</div>
+        <div style="font-size: 11px; font-weight: 600; color: #94a3b8;">Desviaciones a nivel de agente</div>
+    </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- 2. SCATTER PLOT K-MEANS -->
+<!-- ========================================== -->
+<div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
+    <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Distribución Espacial de Agentes (Clustering K-Means)</h6>
+    <p style="text-align: center; font-size: 11px; font-weight: 500; color: #64748b; margin-top: 0; margin-bottom: 20px;">Cada punto representa un agente. El modelo de Machine Learning agrupa automáticamente según el balance entre Efectividad (Cierre) y TMO (Gestión).</p>
+    <div style="height: 300px; width: 100%; position: relative;">
+        <canvas id="scatterKMeans"></canvas>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 3. ISOLATION FOREST: GRÁFICA Y AUDITORÍA MICRO -->
+<!-- ========================================== -->
+<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px; margin-bottom: 32px;">
+    
+    <!-- Gráfico de Tipología de Anomalías (Donut) -->
+    <div class="glass-card" style="padding: 24px;">
+        <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin-bottom: 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tipología de Anomalías</h6>
+        <div style="height: 320px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center;">
+            {% if total_micro_anomalias > 0 %}
+                <canvas id="chartAnomalias"></canvas>
+            {% else %}
+                <div style="text-align: center; color: #94a3b8; font-size: 12px; font-weight: 600;">✨ Sin anomalías registradas.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Log de Auditoría (Micro-anomalías con fondo blanco sólido y centrado) -->
+    <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div></div>
+            <h6 style="text-align: center; font-weight: 900; color: #ef4444; margin: 0; font-size: 12px; text-transform: uppercase;">BITÁCORA DE IA: PREDICCIONES, ANALÍTICA Y ANOMALÍAS</h6>
+            <div style="justify-self: end;">
+                <span style="background: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; border: 1px solid rgba(239, 68, 68, 0.3);">{{ if_ultimas_alertas|length }} REGISTROS</span>
+            </div>
+        </div>
+        
+        <div style="flex: 1; overflow-y: auto; max-height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                    <tr>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">ID Llamada</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Tipo de Alerta</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Razón / Descripción</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Hora</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alerta in if_ultimas_alertas %}
+                    <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                        <td style="padding: 10px 12px; font-weight: 800; color: #0f172a; text-align: center;">{{ alerta.identificador_registro }}</td>
+                        <td style="padding: 10px 12px; text-align: center;">
+                            <span style="background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: 800; font-size: 10px;">{{ alerta.tipo_alerta }}</span>
+                        </td>
+                        <td style="padding: 10px 12px; color: #475569; font-weight: 600; text-align: center;">{{ alerta.descripcion }}</td>
+                        <td style="padding: 10px 12px; color: #64748b; font-weight: 700; text-align: center;">{{ alerta.call_time }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="padding: 25px; text-align: center; color: #64748b; font-weight: 600; background: #ffffff;">
+                            ✨ No se han registrado micro-anomalías operativas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 4. TABLA DE PERFILAMIENTO K-MEANS -->
+<!-- ========================================== -->
+<div class="glass-card" style="padding: 24px; margin-bottom: 32px;">
+    <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 16px;">
+        <div></div>
+        <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Matriz de Perfilamiento K-Means</h6>
+        <div style="justify-self: end;">
+            <span style="background: rgba(234, 88, 12, 0.15); color: #c2410c; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; border: 1px solid rgba(234, 88, 12, 0.3);">{{ insights_kmeans | length }} PERFILES</span>
+        </div>
+    </div>
+    
+    <div style="max-height: 400px; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+        <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center; min-width: 800px;">
+            <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                <tr>
+                    <th style="padding: 12px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Agente (ID)</th>
+                    <th style="padding: 12px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Categoría / Cluster</th>
+                    <th style="padding: 12px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Efectividad (%)</th>
+                    <th style="padding: 12px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">TMO Promedio (s)</th>
+                    <th style="padding: 12px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Análisis del Algoritmo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for insight in insights_kmeans %}
+                <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                    <td style="padding: 12px 16px; font-weight: 800; color: #0f172a; text-align: center;">{{ insight.agente }}</td>
+                    <td style="padding: 12px 16px; text-align: center;">
+                        <span style="padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase;
+                            {% if 'Oportunidad' in insight.cluster_nombre %} background: #fee2e2; color: #b91c1c;
+                            {% elif 'Estrella' in insight.cluster_nombre or 'Top' in insight.cluster_nombre %} background: #dcfce7; color: #15803d;
+                            {% else %} background: #fef3c7; color: #b45309; {% endif %}
+                        ">{{ insight.cluster_nombre }}</span>
+                    </td>
+                    <td style="padding: 12px 16px; font-weight: 900; color: #ea580c; text-align: center;">{{ insight.metrica_principal }}%</td>
+                    <td style="padding: 12px 16px; font-weight: 700; color: #475569; text-align: center;">{{ insight.metrica_secundaria }}s</td>
+                    <td style="padding: 12px 16px; color: #475569; font-weight: 600; text-align: center; font-style: italic;">{{ insight.descripcion_insight }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- SCRIPTS DE CHART.JS -->
+<!-- ========================================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#64748b';
+
+    // 1. Gráfico de Dispersión (K-Means Scatter Plot)
+    const ctxScatter = document.getElementById('scatterKMeans').getContext('2d');
+    new Chart(ctxScatter, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Alto Rendimiento',
+                    data: {{ scatter_alto_rendimiento | tojson }},
+                    backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                    borderColor: '#059669',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Estándar',
+                    data: {{ scatter_estandar | tojson }},
+                    backgroundColor: 'rgba(2, 132, 199, 0.85)',
+                    borderColor: '#0369a1',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Área de Oportunidad',
+                    data: {{ scatter_oportunidad | tojson }},
+                    backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                    borderColor: '#b91c1c',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { weight: 'bold' } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let agent = context.raw.agente;
+                            return `Agente: ${agent} | Efectividad: ${context.raw.y}% | TMO: ${context.raw.x}s`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'TMO Promedio (Segundos)', font: { weight: 'bold', size: 12 }, color: '#334155' },
+                    grid: { borderDash: [2, 4], color: 'rgba(0,0,0,0.05)' },
+                    ticks: { font: { weight: 'bold' } }
+                },
+                y: {
+                    title: { display: true, text: 'Efectividad de Cierre (%)', font: { weight: 'bold', size: 12 }, color: '#334155' },
+                    grid: { borderDash: [2, 4], color: 'rgba(0,0,0,0.05)' },
+                    beginAtZero: true,
+                    ticks: { font: { weight: 'bold' } }
+                }
+            }
+        }
+    });
+
+    // 2. Gráfico de Tipología de Anomalías (Donut - Reemplazando las barras)
+    {% if total_micro_anomalias > 0 %}
+    const ctxAnomalias = document.getElementById('chartAnomalias').getContext('2d');
+    new Chart(ctxAnomalias, {
+        type: 'doughnut',
+        data: {
+            labels: {{ labels_anomalias | tojson }},
+            datasets: [{
+                data: {{ valores_anomalias | tojson }},
+                backgroundColor: ['#0047AB', '#00A3E0', '#FF9F1C', '#E63946', '#2A9D8F', '#8338EC', '#F4A261'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { 
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        font: { size: 11, family: "'Inter', sans-serif" },
+                        padding: 15,
+                        usePointStyle: true,
+                        boxWidth: 8
+                    } 
+                } 
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

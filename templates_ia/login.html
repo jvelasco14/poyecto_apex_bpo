@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Seguro | GTR Analytics IA</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* El mismo fondo moderno y fluido de la plataforma */
+            background-color: #cbd5e1; 
+            background-image: 
+                radial-gradient(circle at 10% 0%, rgba(0, 143, 156, 0.35) 0%, transparent 45%), 
+                radial-gradient(circle at 90% 0%, rgba(232, 123, 40, 0.30) 0%, transparent 45%); 
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Tarjeta Glassmorphism */
+        .login-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            border-top: 5px solid #6b21a8; /* Borde superior Morado Apex */
+        }
+
+        /* Contenedor del Logo y Títulos */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .logo-container img {
+            max-width: 120px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+        }
+
+        .logo-container h1 {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .badge-ia {
+            background-color: rgba(0, 180, 200, 0.15);
+            color: #008f9c;
+            border: 1px solid rgba(0, 180, 200, 0.3);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-container p {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Alertas de Error */
+        .error-alert {
+            background: rgba(254, 226, 226, 0.9);
+            border-left: 4px solid #dc2626;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Formularios */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            border-color: #6b21a8;
+            box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.15);
+            background: #ffffff;
+        }
+
+        /* Botón Principal */
+        .btn-login {
+            background-color: #6b21a8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            width: 100%;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            background-color: #581c87;
+        }
+
+        /* Nota de Seguridad */
+        .security-note {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .security-note svg {
+            width: 14px;
+            height: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-container">
+            <!-- Llamando a la imagen de Apex desde la carpeta static -->
+            <img src="{{ url_for('static', path='apex_logo.png') }}" alt="Apex America Logo">
+            
+            <h1>APXGTR Analytics <span class="badge-ia">IA</span></h1>
+            <p>Centro de Control Operativo</p>
+        </div>
+
+        <!-- Módulo de captura de errores desde FastAPI -->
+        {% if error == 'credenciales_invalidas' %}
+        <div class="error-alert">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span><strong>Acceso denegado:</strong> El correo o la contraseña son incorrectos.</span>
+        </div>
+        {% endif %}
+
+        <!-- Formulario protegido que conecta con Supabase Auth -->
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="email" class="form-label">CORREO CORPORATIVO</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="ejemplo@apex.com" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">CONTRASEÑA</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn-login">Iniciar Sesión</button>
+        </form>
+
+        <div class="security-note">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Acceso restringido. Encriptación ISO 27001 activa.
+        </div>
+    </div>
+
+</body>
+</html>

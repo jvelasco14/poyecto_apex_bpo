@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}APXGTR Analytics{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --apex-teal: #00b4c8;
+            --apex-teal-dark: #008f9c;
+            --apex-orange: #e87b28;
+            --apex-purple: #6b21a8;
+            --apex-dark: #333333;
+            --apex-bg: #f4f6f8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #cbd5e1; 
+            background-image: 
+                radial-gradient(circle at 10% 0%, rgba(0, 143, 156, 0.35) 0%, transparent 45%), 
+                radial-gradient(circle at 90% 0%, rgba(232, 123, 40, 0.30) 0%, transparent 45%); 
+            color: var(--apex-dark); 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        
+        /* SIDEBAR PROFESIONAL Y TRANSLÚCIDO */
+        .sidebar { 
+            width: 80px; 
+            background: rgba(255, 255, 255, 0.85); /* Fondo blanco translúcido */
+            backdrop-filter: blur(12px);          /* Efecto cristal */
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(255, 255, 255, 0.5); /* Borde suave */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            z-index: 100; 
+            box-shadow: 2px 0 15px rgba(0,0,0,0.03); 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .sidebar:hover { width: 280px; box-shadow: 4px 0 20px rgba(0,0,0,0.06); background: rgba(255, 255, 255, 0.95); }
+        .sidebar-top { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+        
+        .brand { padding: 24px 0; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; height: 110px; }
+        .brand img { max-width: 45px; transition: max-width 0.3s ease; }
+        .sidebar:hover .brand img { max-width: 130px; } 
+        
+        .hide-on-collapse { opacity: 0; visibility: hidden; transition: opacity 0.2s; }
+        .sidebar:hover .hide-on-collapse { opacity: 1; visibility: visible; }
+        
+        .app-badge { background-color: rgba(0, 180, 200, 0.15); color: var(--apex-teal-dark); border: 1px solid rgba(0, 180, 200, 0.3); padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+        
+        .nav-menu { list-style: none; padding: 16px 0; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; flex-grow: 1; }
+        
+        .nav-item { padding: 14px 28px; color: #475569; font-size: 13px; font-weight: 700; cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s ease; text-decoration: none; display: flex; align-items: center; gap: 16px; }
+        .nav-item:hover { background-color: rgba(0, 180, 200, 0.08); color: var(--apex-teal-dark); }
+        .nav-item.active { background-color: rgba(0, 180, 200, 0.12); color: var(--apex-teal-dark); border-left-color: var(--apex-teal); }
+        
+        .nav-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #64748b; }
+        .nav-item:hover .nav-icon, .nav-item.active .nav-icon { color: var(--apex-teal-dark); }
+        .nav-text-container { flex-grow: 1; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Submenús con acordeón exclusivo */
+        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: rgba(248, 250, 252, 0.6); }
+        .submenu.open { max-height: 500px; }
+        
+        .sub-item { padding: 12px 24px 12px 64px; color: #64748b; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-decoration: none; transition: 0.2s; }
+        .sub-item:hover { color: var(--apex-dark); background-color: rgba(0, 0, 0, 0.04); }
+        
+        .sub-submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: rgba(241, 245, 249, 0.5); }
+        .sub-submenu.open { max-height: 250px; }
+        .sub-submenu a { display: block; padding: 10px 24px 10px 80px; color: #64748b; font-size: 11px; font-weight: 600; text-decoration: none; transition: 0.2s; border-left: 3px solid transparent; }
+        
+        /* Colores dinámicos para los submenús */
+        /* Migraciones (Morado) */
+        #migracion-sub a:hover { color: var(--apex-purple); background-color: rgba(255, 255, 255, 0.8); }
+        #migracion-sub a.active-sub { color: var(--apex-purple); font-weight: 800; background-color: rgba(107, 33, 168, 0.08); border-left-color: var(--apex-purple); }
+        
+        /* Retenciones (Naranja) */
+        #retencion-sub a:hover { color: var(--apex-orange); background-color: rgba(255, 255, 255, 0.8); }
+        #retencion-sub a.active-sub { color: var(--apex-orange); font-weight: 800; background-color: rgba(232, 123, 40, 0.08); border-left-color: var(--apex-orange); }
+        
+        /* RRSS (Cyan) */
+        #rrss-sub a:hover { color: var(--apex-teal); background-color: rgba(255, 255, 255, 0.8); }
+        #rrss-sub a.active-sub { color: var(--apex-teal-dark); font-weight: 800; background-color: rgba(0, 180, 200, 0.08); border-left-color: var(--apex-teal); }
+        
+        .chevron { transition: transform 0.3s; font-size: 10px; color: #94a3b8; }
+        .chevron.rotate { transform: rotate(180deg); }
+
+        /* FOOTER SIDEBAR */
+        .sidebar-footer { padding: 16px; border-top: 1px solid rgba(0,0,0,0.05); background-color: rgba(248, 250, 252, 0.5); }
+        .footer-text { font-size: 10px; color: #94a3b8; line-height: 1.4; font-weight: 500; text-align: center; }
+        .footer-text strong { color: #475569; display: block; margin-bottom: 2px; }
+
+        /* MAIN CONTENT & TOPBAR */
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; transition: width 0.3s ease; }
+        .top-gradient-bar { height: 6px; min-height: 6px; width: 100%; background: linear-gradient(90deg, #e87b28 0%, #00b4c8 100%); flex-shrink: 0; }
+        .topbar { background-color: transparent; padding: 13px 25px 4px 32px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .topbar-title { font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: 0.5px; }
+
+        /* USER PROFILE DROPDOWN (SUPERIOR DERECHA) - TRANSLÚCIDO */
+        .user-dropdown-container { position: relative; display: inline-block; }
+        .user-profile { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #334155; font-weight: 700; cursor: pointer; padding: 6px 14px; border-radius: 8px; transition: background 0.2s; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); }
+        .user-profile:hover { background-color: rgba(255, 255, 255, 0.7); }
+        .avatar { width: 34px; height: 34px; background-color: var(--apex-teal); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; }
+        
+        .dropdown-menu-custom {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: rgba(255, 255, 255, 0.85); /* Fondo blanco más transparente */
+            backdrop-filter: blur(16px);           /* Desenfoque fuerte para el cristal */
+            -webkit-backdrop-filter: blur(16px);
+            min-width: 220px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            z-index: 1000;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .dropdown-menu-custom.show { display: block; }
+        .dropdown-header { padding: 14px 16px; background: rgba(248, 250, 252, 0.6); border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dropdown-item { padding: 12px 16px; font-size: 13px; font-weight: 700; color: #334155; text-decoration: none; display: flex; align-items: center; gap: 10px; transition: background 0.2s; }
+        .dropdown-item:hover { background: rgba(0, 180, 200, 0.1); color: var(--apex-teal-dark); }
+        .dropdown-item.logout { color: #ef4444; border-top: 1px solid rgba(0,0,0,0.05); }
+        .dropdown-item.logout:hover { background: rgba(254, 226, 226, 0.6); color: #dc2626; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container { padding: 8px 32px 32px 32px; max-width: 1400px; width: 100%; margin: 0 auto; }
+        </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            <div class="brand">
+                <img src="{{ url_for('static', path='apex_logo.png') }}" alt="Apex America Logo">
+                <div class="app-badge hide-on-collapse">APXGTR Analytics</div>
+            </div>
+            
+            <nav class="nav-menu">
+                
+                <!-- 1. GLOBAL OVERVIEW -->
+                <a href="/" class="nav-item {% if menu_activo == 'global' %}active{% endif %}">
+                    <div class="nav-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    </div>
+                    <div class="nav-text-container hide-on-collapse">Global Overview</div>
+                </a>
+                
+                <!-- 2. OPERATIVE FRONTS (Acordeón Exclusivo) -->
+                <div class="nav-item {% if menu_activo in ['rt', 'migraciones_eod', 'ml_migraciones', 'rt_retenciones', 'eod_retenciones', 'ml_retenciones', 'rt_rrss', 'eod_rrss', 'ml_rrss'] %}active{% endif %}" onclick="toggleMainAccordion('lob-menu', 'lob-chevron')">
+                    <div class="nav-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    </div>
+                    <div class="nav-text-container hide-on-collapse">
+                        <span>Operative Fronts</span>
+                        <span class="chevron {% if menu_activo in ['rt', 'migraciones_eod', 'ml_migraciones', 'rt_retenciones', 'eod_retenciones', 'ml_retenciones', 'rt_rrss', 'eod_rrss', 'ml_rrss'] %}rotate{% endif %}" id="lob-chevron">▼</span>
+                    </div>
+                </div>
+                
+                <div class="submenu hide-on-collapse {% if menu_activo in ['rt', 'migraciones_eod', 'ml_migraciones', 'rt_retenciones', 'eod_retenciones', 'ml_retenciones', 'rt_rrss', 'eod_rrss', 'ml_rrss'] %}open{% endif %}" id="lob-menu">
+                    
+                    <!-- Sub-menú MIGRACIONES -->
+                    <div class="sub-item" onclick="toggleSubItem('migracion-sub', 'migracion-chevron')">
+                        <span>• Migraciones (Inbound)</span>
+                        <span class="chevron {% if menu_activo in ['rt', 'migraciones_eod', 'ml_migraciones'] %}rotate{% endif %}" id="migracion-chevron">▼</span>
+                    </div>
+                    <div class="sub-submenu grupo-operativo {% if menu_activo in ['rt', 'migraciones_eod', 'ml_migraciones'] %}open{% endif %}" id="migracion-sub">
+                        <a href="/migraciones/rt" class="{% if menu_activo == 'rt' %}active-sub{% endif %}">Tiempo Real (RT)</a>
+                        <a href="/migraciones/eod" class="{% if menu_activo == 'migraciones_eod' %}active-sub{% endif %}">Cierre Diario (EOD)</a>
+                        <a href="/migraciones/ml" class="{% if menu_activo == 'ml_migraciones' %}active-sub{% endif %}">Análisis ML</a>
+                    </div>
+
+                    <!-- Sub-menú RETENCIONES -->
+                    <div class="sub-item" onclick="toggleSubItem('retencion-sub', 'retencion-chevron')">
+                        <span>• Retenciones (Outbound)</span>
+                        <span class="chevron {% if menu_activo in ['rt_retenciones', 'eod_retenciones', 'ml_retenciones'] %}rotate{% endif %}" id="retencion-chevron">▼</span>
+                    </div>
+                    <div class="sub-submenu grupo-operativo {% if menu_activo in ['rt_retenciones', 'eod_retenciones', 'ml_retenciones'] %}open{% endif %}" id="retencion-sub">
+                        <a href="/retenciones/rt" class="{% if menu_activo == 'rt_retenciones' %}active-sub{% endif %}">Tiempo Real (RT)</a>
+                        <a href="/retenciones/eod" class="{% if menu_activo == 'eod_retenciones' %}active-sub{% endif %}">Cierre Diario (EOD)</a>
+                        <a href="/retenciones/ml" class="{% if menu_activo == 'ml_retenciones' %}active-sub{% endif %}">Análisis ML</a>
+                    </div>
+
+                    <!-- Sub-menú REDES SOCIALES -->
+                    <div class="sub-item" onclick="toggleSubItem('rrss-sub', 'rrss-chevron')">
+                        <span>• Redes Sociales (Chat)</span>
+                        <span class="chevron {% if menu_activo in ['rt_rrss', 'eod_rrss', 'ml_rrss'] %}rotate{% endif %}" id="rrss-chevron">▼</span>
+                    </div>
+                    <div class="sub-submenu grupo-operativo {% if menu_activo in ['rt_rrss', 'eod_rrss', 'ml_rrss'] %}open{% endif %}" id="rrss-sub">
+                        <a href="/rrss/rt" class="{% if menu_activo == 'rt_rrss' %}active-sub{% endif %}">Tiempo Real (RT)</a>
+                        <a href="/rrss/eod" class="{% if menu_activo == 'eod_rrss' %}active-sub{% endif %}">Cierre Diario (EOD)</a>
+                        <a href="/rrss/ml" class="{% if menu_activo == 'ml_rrss' %}active-sub{% endif %}">Análisis ML</a>
+                    </div>
+                </div>
+
+                <!-- 3. AGENT ANALYTICS -->
+                <a href="/analytics/agente" class="nav-item {% if menu_activo == 'agent_analytics' %}active{% endif %}">
+                    <div class="nav-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <div class="nav-text-container hide-on-collapse">Agent Analytics</div>
+                </a>
+
+            </nav>
+        </div>
+
+        <div class="sidebar-footer hide-on-collapse">
+            <div class="footer-text">
+                <strong>Juan Guillermo Velasco</strong>
+                Proyecto de Grado - Unicauca
+            </div>
+        </div>
+    </aside> 
+
+    <main class="main-content">
+        <div class="top-gradient-bar"></div>
+        <header class="topbar">
+            <div class="topbar-title">{{ titulo | upper }}</div>
+            
+            <!-- MENÚ DESPLEGABLE DE USUARIO (SUPERIOR DERECHA) -->
+            <div class="user-dropdown-container">
+                <div class="user-profile" onclick="toggleUserDropdown(event)">
+                    <span>Usuario</span>
+                    <div class="avatar">A</div>
+                    <span style="font-size: 10px; color: #64748b; margin-left: 4px;">▼</span>
+                </div>
+                
+                <div class="dropdown-menu-custom" id="userDropdown">
+                    <div class="dropdown-header">Panel de Administrador</div>
+                    <a href="/admin/usuarios" class="dropdown-item">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                        Gestión de Usuarios
+                    </a>
+                    <a href="/logout" class="dropdown-item logout">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+
+        </header>
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+    
+    <script>
+        // 1. Lógica de acordeón exclusivo para Operative Fronts
+        function toggleMainAccordion(menuId, chevronId) {
+            event.stopPropagation();
+            const targetMenu = document.getElementById(menuId);
+            const targetChevron = document.getElementById(chevronId);
+            
+            targetMenu.classList.toggle('open');
+            targetChevron.classList.toggle('rotate');
+        }
+
+        // 2. Lógica para abrir solo un submenú a la vez
+        function toggleSubItem(subId, chevronId) {
+            event.stopPropagation();
+            
+            const allSubMenus = document.querySelectorAll('.sub-submenu');
+            const allChevrons = document.querySelectorAll('.sub-item .chevron');
+            
+            allSubMenus.forEach(menu => {
+                if (menu.id !== subId) {
+                    menu.classList.remove('open');
+                }
+            });
+            
+            allChevrons.forEach(chev => {
+                if (chev.id !== chevronId) {
+                    chev.classList.remove('rotate');
+                }
+            });
+            
+            const targetSub = document.getElementById(subId);
+            const targetChev = document.getElementById(chevronId);
+            
+            targetSub.classList.toggle('open');
+            targetChev.classList.toggle('rotate');
+        }
+
+        // 3. Menú desplegable superior derecho
+        function toggleUserDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        window.addEventListener('click', function() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

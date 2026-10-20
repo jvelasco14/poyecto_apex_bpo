@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Cierre EOD - Migraciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Efecto Glassmorphism Estándar */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+    }
+
+    /* Tablas Hover */
+    .table-hover-row:hover {
+        background: rgba(255, 255, 255, 0.9) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ========================================== -->
+<!-- ENCABEZADO AMPLIO CENTRADO EN 3 COLUMNAS -->
+<!-- ========================================== -->
+<div style="background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.7); border-radius: 12px; padding: 24px 30px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);">
+    
+    <!-- Columna Izquierda (Badge EOD) -->
+
+    <div style="display: flex; gap: 10px; justify-self: start; align-self: start;">
+        <span style="background: rgba(147, 51, 234, 0.15); color: #9333ea; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; border: 1px solid rgba(147, 51, 234, 0.3); display: flex; align-items: center; gap: 6px;">
+            <span class="pulse-dot"></span> 🌙 CIERRE EOD INBOUND
+        </span>
+    </div>
+    
+    <!-- Columna Central (Título con Violeta Profundo) -->
+    <div style="text-align: center;">
+        <h1 style="color: #4c1d95; font-size: 26px; font-weight: 900; margin: 0 0 4px 0; letter-spacing: -0.5px; text-transform: uppercase;">Migraciones Inbound</h1>
+        <p style="color: #475569; font-size: 14px; margin: 0; font-weight: 600;">Cierre Diario Operativo y Tráfico Consolidado</p>
+    </div>
+    
+    <!-- Columna Derecha (Filtro Compacto) -->
+    <div style="background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); justify-self: end; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <form method="GET" action="/migraciones/eod" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+            <input type="date" name="fecha" value="{{ eod_fecha_analisis }}" style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #0f172a; outline: none; cursor: pointer; font-family: 'Inter', sans-serif;">
+            <button type="submit" style="background: #4c1d95; color: white; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.2s;">Consultar</button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 1. 5 STATS CARDS ESTRATÉGICAS (NUEVA INCORPORADA) -->
+<!-- ========================================== -->
+<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+    
+    <!-- 1. Ventas -->
+    <div class="glass-card" style="padding: 16px; border-left: 4px solid #10b981; text-align: center;">
+        <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">VENTAS TOTALES EOD</div>
+        <div style="font-size: 24px; font-weight: 900; color: #10b981; margin-bottom: 2px;">{{ eod_ventas_totales }}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Cierres Facturados</div>
+    </div>
+
+    <!-- 2. Marcaciones Atendidas -->
+    <div class="glass-card" style="padding: 16px; border-left: 4px solid #6b21a8; text-align: center;">
+        <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">MARCACIONES ATENDIDAS</div>
+        <div style="font-size: 24px; font-weight: 900; color: #6b21a8; margin-bottom: 2px;">{{ eod_total_marcaciones }}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Llamadas conectadas</div>
+    </div>
+
+    <!-- 3. Llamadas Crudas (NUEVO STAT) -->
+    <!-- Reemplaza SOLO la tarjeta 3 (Llamadas Crudas) en el bloque de Stats -->
+    <div class="glass-card" style="padding: 16px; border-left: 4px solid #4f46e5; text-align: center;">
+        <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">LLAMADAS CRUDAS (RAW)</div>
+        <!-- Agregamos default('0') para evitar que se vea en blanco -->
+        <div style="font-size: 24px; font-weight: 900; color: #4f46e5; margin-bottom: 2px;">{{ eod_llamadas_crudas | default('0') }}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Consolidado total switch</div>
+    </div>
+
+    <!-- 4. TMO -->
+    <div class="glass-card" style="padding: 16px; border-left: 4px solid #f59e0b; text-align: center;">
+        <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">TMO PROMEDIO</div>
+        <div style="font-size: 24px; font-weight: 900; color: #d97706; margin-bottom: 2px;">{{ eod_tmo_promedio }}s</div>
+        <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">General operativo</div>
+    </div>
+
+    <!-- 5. Agentes -->
+    <div class="glass-card" style="padding: 16px; border-left: 4px solid #00b4c8; text-align: center;">
+        <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">AGENTES LOGUEADOS</div>
+        <div style="font-size: 24px; font-weight: 900; color: #00b4c8; margin-bottom: 2px;">{{ eod_agentes_activos }}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Fuerza laboral en turno</div>
+    </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- 2. GRÁFICAS: LÍNEA Y DOUGHNUT -->
+<!-- ========================================== -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+    
+    <div class="glass-card" style="padding: 20px;">
+        <h6 style="text-align: left; font-weight: 800; color: #0f172a; margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Curva de Tráfico de Llamadas (Consolidado EOD)</h6>
+        <div style="height: 220px; width: 100%; position: relative;">
+            <canvas id="lineChartEOD"></canvas>
+        </div>
+    </div>
+
+    <div class="glass-card" style="padding: 20px;">
+        <h6 style="text-align: center; font-weight: 800; color: #0f172a; margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Top 5 Motivos de Llamada</h6>
+        <div style="height: 220px; width: 100%; position: relative;">
+            <canvas id="doughnutChartEOD"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 3. TABLAS DE ASESORES CON SCROLL (CENTRADAS Y SÓLIDAS) -->
+<!-- ========================================== -->
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px;">
+    
+    <!-- TOP ASESORES -->
+    <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column;">
+        <h6 style="text-align: center; font-weight: 900; color: #059669; margin-bottom: 16px; font-size: 12px; text-transform: uppercase;">Top Asesores (Mayor N° de Ventas)</h6>
+        
+        <!-- Contenedor con fondo blanco sólido para quitar transparencia -->
+        <div style="flex: 1; overflow-y: auto; max-height: 240px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                    <tr>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Asesor (ID)</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Marcaciones</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Ventas</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">% Efec</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in eod_top_asesores %}
+                    <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                        <td style="padding: 12px; font-weight: 800; color: #0f172a; text-align: center;">{{ a.asesor }}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 600; color: #475569;">{{ a.marcaciones }}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 900; color: #10b981;">{{ a.ventas }}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 800; color: #059669; background: #f0fdfa;">{{ a.efectividad }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- BOTTOM ASESORES -->
+    <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column;">
+        <h6 style="text-align: center; font-weight: 900; color: #dc2626; margin-bottom: 16px; font-size: 12px; text-transform: uppercase;">Oportunidades de Mejora (Menor N° Ventas)</h6>
+        
+        <div style="flex: 1; overflow-y: auto; max-height: 240px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                    <tr>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Asesor (ID)</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Marcaciones</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Ventas</th>
+                        <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">% Efec</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in eod_bottom_asesores %}
+                    <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                        <td style="padding: 12px; font-weight: 800; color: #0f172a; text-align: center;">{{ a.asesor }}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 600; color: #475569;">{{ a.marcaciones }}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 900; color: #ef4444;">{{ a.ventas }}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: 800; color: #dc2626; background: #fef2f2;">{{ a.efectividad }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- 4. MATRIZ DE PERFILAMIENTO K-MEANS -->
+<!-- ========================================== -->
+<div class="glass-card" style="padding: 20px; margin-bottom: 32px;">
+    <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 16px;">
+        <div></div>
+        <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Matriz de Perfilamiento Operativo (K-Means)</h6>
+        <div style="justify-self: end;">
+            <span style="background: rgba(76, 29, 149, 0.15); color: #4c1d95; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; border: 1px solid rgba(76, 29, 149, 0.3);">{{ insights_kmeans | length }} ANALIZADOS</span>
+        </div>
+    </div>
+    
+    <div style="max-height: 400px; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+        <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center; min-width: 900px;">
+            <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                <tr>
+                    <th style="padding: 14px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Agente (ID)</th>
+                    <th style="padding: 14px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Clúster Asignado</th>
+                    <th style="padding: 14px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Efectividad</th>
+                    <th style="padding: 14px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">TMO Promedio</th>
+                    <th style="padding: 14px 16px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Diagnóstico Analítico</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if insights_kmeans %}
+                    {% for row in insights_kmeans %}
+                    <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                        <td style="padding: 12px 16px; font-weight: 800; color: #0f172a; text-align: center;">{{ row.agente }}</td>
+                        <td style="padding: 12px 16px; text-align: center;">
+                            {% if 'Francotiradores' in row.cluster_nombre %}
+                                <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase;">Alto Rendimiento</span>
+                            {% elif 'Estándar' in row.cluster_nombre %}
+                                <span style="background: #e0f2fe; color: #075985; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase;">Estándar</span>
+                            {% else %}
+                                <span style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase;">Oportunidad</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 16px; font-weight: 900; color: #1e293b; text-align: center;">{{ row.metrica_principal }}%</td>
+                        <td style="padding: 12px 16px; font-weight: 700; color: #475569; text-align: center;">{{ row.metrica_secundaria }}s</td>
+                        <td style="padding: 12px 16px; color: #475569; font-weight: 600; text-align: center; font-style: italic;">{{ row.descripcion_insight }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 25px; text-align: center; color: #64748b; font-weight: 600; background: #ffffff;">
+                            ✨ No se registran datos de inteligencia artificial generados para esta fecha.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- ========================================== -->
+<!-- SCRIPTS DE CHART.JS -->
+<!-- ========================================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#64748b';
+
+    // 1. Gráfica Curva de Llamadas (Violeta Profundo)
+    const ctxLine = document.getElementById('lineChartEOD').getContext('2d');
+    new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: {{ eod_horas_labels | tojson }},
+            datasets: [{
+                label: 'Marcaciones',
+                data: {{ eod_horas_valores | tojson }},
+                borderColor: '#4c1d95',
+                backgroundColor: 'rgba(76, 29, 149, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4, // Curvas suaves
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#4c1d95',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { grid: { display: false }, ticks: { font: { weight: 'bold' }, color: '#334155' } }, 
+                y: { grid: { borderDash: [2, 4], color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { color: '#64748b' } } 
+            }
+        }
+    });
+
+    // 2. Gráfica Top Disposiciones (Doughnut sin bordes)
+    const ctxDoughnut = document.getElementById('doughnutChartEOD').getContext('2d');
+    new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+            labels: {{ eod_disp_labels | tojson }},
+            datasets: [{
+                data: {{ eod_disp_valores | tojson }},
+                backgroundColor: ['#4c1d95', '#6b21a8', '#00b4c8', '#10b981', '#f59e0b'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { 
+                legend: { position: 'right', labels: { padding: 12, usePointStyle: true, boxWidth: 6, font: {size: 11} } } 
+            }
+        }
+    });
+</script>
+{% endblock %}

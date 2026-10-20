@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+
+{% block title %}Tiempo Real - Redes Sociales{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Efectos de pulso IA - VERSIÓN CYAN (RRSS) */
+    .pulse-dot {
+        width: 7px;
+        height: 7px;
+        background-color: #00b4c8;
+        border-radius: 50%;
+        position: relative;
+    }
+    .pulse-dot::after {
+        content: '';
+        position: absolute;
+        top: -3px; left: -3px; right: -3px; bottom: -3px;
+        border: 2px solid #00b4c8;
+        border-radius: 50%;
+        animation: pulseWave 1.5s infinite;
+    }
+    @keyframes pulseWave {
+        0% { transform: scale(0.8); opacity: 1; }
+        100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    @keyframes pulse-red {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+        70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .alerta-pulsando { animation: pulse-red 2s infinite; }
+
+    /* Efecto para la pestaña de alertas (Pulso rojo) */
+    @keyframes pulse-tab-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+        70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .tab-peligro {
+        animation: pulse-tab-red 1.5s infinite;
+        border: 1px solid #ef4444 !important;
+    }
+
+    /* Efecto Glassmorphism Estándar */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+    }
+
+    /* Pestañas / Enlaces de Segmento */
+    .tab-btn {
+        padding: 8px 24px;
+        font-size: 12px;
+        font-weight: 800;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .active-tab {
+        background-color: #00b4c8; 
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 180, 200, 0.3);
+    }
+    .inactive-tab {
+        background-color: rgba(255, 255, 255, 0.5);
+        color: #64748b;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .inactive-tab:hover {
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #1e293b;
+    }
+
+    /* Enlaces Filtro (Rectangulares) */
+    .filter-link {
+        padding: 8px 24px; border-radius: 6px; font-size: 12px; font-weight: 800; text-decoration: none; transition: all 0.2s;
+    }
+    .filter-link-active { background: #00b4c8; color: white; box-shadow: 0 2px 4px rgba(0, 180, 200, 0.2); }
+    .filter-link-inactive { background: #f1f5f9; color: #64748b; }
+
+    /* Tablas Hover Sólidas */
+    .table-hover-row:hover {
+        background: rgba(248, 250, 252, 1) !important;
+    }
+
+    /* Scrollbar personalizado para las tablas */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ========================================== -->
+<!-- ENCABEZADO AMPLIO CENTRADO EN 3 COLUMNAS -->
+<!-- ========================================== -->
+<div style="background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.7); border-radius: 12px; padding: 24px 30px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);">
+    
+    <div style="display: flex; gap: 10px; justify-self: start; align-self: start;">
+        <span style="background: {% if es_historico %}rgba(245, 158, 11, 0.15){% else %}rgba(0, 180, 200, 0.15){% endif %}; color: {% if es_historico %}#d97706{% else %}#0891b2{% endif %}; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; border: 1px solid {% if es_historico %}rgba(245, 158, 11, 0.3){% else %}rgba(0, 180, 200, 0.3){% endif %}; display: flex; align-items: center; gap: 6px;">
+            <span class="pulse-dot" style="display: inline-block; margin-right: 4px; {% if es_historico %}background-color: #f59e0b;{% endif %}"></span> 
+            {% if es_historico %}DATA HISTÓRICO{% else %}INTRADAY EN VIVO{% endif %}
+        </span>
+    </div>
+    
+    <div style="text-align: center;">
+        <h1 style="color: #0891b2; font-size: 26px; font-weight: 900; margin: 0 0 4px 0; letter-spacing: -0.5px; text-transform: uppercase;">Redes Sociales (RRSS)</h1>
+        <p style="color: #475569; font-size: 14px; margin: 0; font-weight: 600;">Control Operativo en Tiempo Real</p>
+    </div>
+    
+    <div style="background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); justify-self: end; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <form method="GET" action="/rrss/rt" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+            <input type="date" name="fecha" value="{{ fecha_consulta }}" style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #0f172a; outline: none; cursor: pointer; font-family: 'Inter', sans-serif;">
+            <button type="submit" style="background: #00b4c8; color: white; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.2s;">Consultar</button>
+            <a href="/rrss/rt" style="background: #10b981; color: white; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">HOY</a>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- MENÚ DE PESTAÑAS PRINCIPALES (PANEL VS ALERTAS) -->
+<div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center;">
+    <button id="tab-panel" class="tab-btn active-tab" onclick="switchTab('panel')">Panel de Control Integral</button>
+    <button id="tab-alertas" class="tab-btn inactive-tab {% if alertas_ml|length > 0 %}tab-peligro{% endif %}" onclick="switchTab('alertas')" style="display: flex; align-items: center; gap: 6px;">
+        <span style="display: inline-block; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%;"></span>
+        Centro de Anomalías ML
+    </button>
+</div>
+
+<!-- SISTEMA DE FILTROS DE SEGMENTO (SECUNDARIO) -->
+<div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; padding-bottom: 10px;">
+    <a href="/rrss/rt?segmento_filtro=General" class="filter-link {% if segmento_activo == 'General' %}filter-link-active{% else %}filter-link-inactive{% endif %}">Corte General</a>
+    <a href="/rrss/rt?segmento_filtro=Unicos" class="filter-link {% if segmento_activo == 'Unicos' %}filter-link-active{% else %}filter-link-inactive{% endif %}">Tráfico Únicos</a>
+    <a href="/rrss/rt?segmento_filtro=Reapertura" class="filter-link {% if segmento_activo == 'Reapertura' %}filter-link-active{% else %}filter-link-inactive{% endif %}">Tráfico Reaperturas</a>
+</div>
+
+<!-- ========================================================================= -->
+<!-- CONTENEDOR 1: PANEL DE CONTROL                                            -->
+<!-- ========================================================================= -->
+<div id="content-panel" style="display: block;">
+
+    <!-- 1. KPIs DE SALUD OPERATIVA (5 COLUMNAS) -->
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+        
+        <div class="glass-card" style="padding: 16px; border-left: 4px solid #00b4c8; text-align: center;">
+            <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">CHATS EN COLA (PENDIENTES)</div>
+            <div style="font-size: 24px; font-weight: 900; color: #1e293b; margin-bottom: 2px;">{{ chats_pendientes }}</div>
+            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Esperando agente</div>
+        </div>
+
+        <div class="glass-card" style="padding: 16px; border-left: 4px solid #3b82f6; text-align: center;">
+            <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">VELOCIDAD DE RESPUESTA (ASA)</div>
+            <div style="font-size: 24px; font-weight: 900; color: #3b82f6; margin-bottom: 2px;">{{ asa_vivo }}<span style="font-size: 14px;">s</span></div>
+            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Promedio de atención</div>
+        </div>
+
+        <div class="glass-card" style="padding: 16px; border-left: 4px solid {% if sla_vivo >= 85 %}#10b981{% else %}#3b82f6 {% endif %}; text-align: center;">
+            <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">NIVEL DE SERVICIO (SLA)</div>
+            <div style="font-size: 24px; font-weight: 900; color: {% if sla_vivo >= 85 %}#10b981{% else %} #3b82f6{% endif %}; margin-bottom: 2px;">{{ sla_vivo }}%</div>
+            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Umbral &lt; 4 minutos</div>
+        </div>
+
+        <div class="glass-card" style="padding: 16px; border-left: 4px solid #8b5cf6; text-align: center;">
+            <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">TIEMPO MEDIO (TMO)</div>
+            <div style="font-size: 24px; font-weight: 900; color: #8b5cf6; margin-bottom: 2px;">{{ tmo_vivo }}<span style="font-size: 14px;">s</span></div>
+            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Duración operativa en caliente</div>
+        </div>
+
+        <div class="glass-card {% if alertas_ml|length > 0 %}alerta-pulsando{% endif %}" style="padding: 16px; border-left: 4px solid {% if alertas_ml|length > 0 %}#ef4444{% else %}#10b981{% endif %}; text-align: center;">
+            <div style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">ANOMALÍAS IA (IF)</div>
+            <div style="font-size: 24px; font-weight: 900; color: {% if alertas_ml|length > 0 %}#ef4444{% else %}#10b981{% endif %}; margin-bottom: 2px;">{{ alertas_ml|length }}</div>
+            <div style="font-size: 10px; font-weight: 600; color: #94a3b8;">Isolation Forest</div>
+        </div>
+    </div>
+
+    <!-- 2. GRÁFICA DE EVOLUCIÓN (TIEMPO REAL) -->
+    <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
+        <h6 style="text-align: left; font-weight: 800; color: #0f172a; margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Evolución del Flujo de Interacciones por Hora (Intraday)</h6>
+        <div style="height: 250px; width: 100%; position: relative;">
+            {% if desglose_horas|length > 0 %}
+                <canvas id="chartEvolucionRT"></canvas>
+            {% else %}
+                <div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #94a3b8; font-size: 12px; font-weight: 600;">Sin tráfico registrado en curso.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 3. TABLA INTRADAY Y DONA DE TRÁFICO -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 24px;">
+        
+        <!-- TABLA CORTE INTRADAY POR CANAL -->
+        <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column;">
+            <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin-bottom: 16px; font-size: 12px; text-transform: uppercase;">Corte Intraday: {{ segmento_activo }}</h6>
+            
+            <div style="flex: 1; overflow-y: auto; max-height: 280px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center;">
+                    <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                        <tr>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: left; border-bottom: 2px solid #cbd5e1;">Canal Final</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Ofrecidas</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Atendidas</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Atend &lt; 4m</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">TMO</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">ASA</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">SLA (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for canal in matriz_rt %}
+                        <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                            <td style="padding: 12px; text-align: left; font-weight: 800; color: #0891b2;">{{ canal.canal_final }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 600; color: #475569;">{{ canal.ofrecidas }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 900; color: #0f172a;">{{ canal.atendidas }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 600; color: #475569;">{{ canal.atendidas_4min }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 700; color: #64748b;">{{ canal.tmo }}s</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 700; color: #64748b;">{{ canal.asa }}s</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 900; color: {% if canal.sla >= 85 %}#10b981{% else %}#ef4444{% endif %};">{{ canal.sla }}%</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7" style="padding: 20px; text-align: center; color: #94a3b8; font-weight: 600;">Sin datos en este segmento.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Dona de Tráfico por Canal -->
+        <div class="glass-card" style="padding: 20px;">
+            <h6 style="text-align: center; font-weight: 800; color: #0f172a; margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Distribución de Tráfico</h6>
+            <div style="height: 250px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center;">
+                {% if labels_canal|length > 0 %}
+                    <canvas id="chartCanales"></canvas>
+                {% else %}
+                    <div style="text-align: center; color: #94a3b8; font-size: 12px; font-weight: 600;">Sin chats registrados en curso.</div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 4. RADAR DE AGENTES Y HORA A HORA (PEGADAS) -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+
+        <!-- Tabla: Radar de Agentes -->
+        <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h6 style="text-align: left; font-weight: 900; color: #0f172a; margin: 0; font-size: 12px; text-transform: uppercase;">Productividad de Asesores</h6>
+                <span style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; border: 1px solid rgba(16, 185, 129, 0.3);">{{ chats_atendidos }} ATENDIDAS</span>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; max-height: 250px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center;">
+                    <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                        <tr>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: left; border-bottom: 2px solid #cbd5e1;">Nombre del Agente</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Chats Gestionados</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">TMO Caliente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agente in agentes_vivo %}
+                        <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                            <td style="padding: 12px; text-align: left; font-weight: 700; color: #0f172a;">
+                                <span style="display: inline-block; width: 6px; height: 6px; background: #00b4c8; border-radius: 50%; margin-right: 6px;"></span>
+                                {{ agente.Agente }}
+                            </td>
+                            <td style="padding: 12px; text-align: center; font-weight: 900; color: #00b4c8;">{{ agente.chats }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 700; color: #64748b;">{{ agente.tmo_actual }}s</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="padding: 30px; text-align: center; color: #94a3b8; font-weight: 600;">Esperando asignaciones del enrutador...</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABLA DESGLOSE HORA A HORA -->
+        <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column;">
+            <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin-bottom: 16px; font-size: 12px; text-transform: uppercase;">Evolución Hora a Hora</h6>
+            
+            <div style="flex: 1; overflow-y: auto; max-height: 250px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center;">
+                    <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                        <tr>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Hora</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Ofrecidas</th>
+                            <th style="padding: 12px; font-weight: 900; color: #1e293b; text-align: center; border-bottom: 2px solid #cbd5e1;">Atendidas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in desglose_horas|reverse %}
+                        <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: #ffffff; transition: background 0.2s;">
+                            <td style="padding: 12px; text-align: center; font-weight: 800; color: #475569;">{{ h.hora_limpia }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 600; color: #64748b;">{{ h.ofrecidas }}</td>
+                            <td style="padding: 12px; text-align: center; font-weight: 900; color: #00b4c8;">{{ h.atendidas }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" style="padding: 20px; text-align: center; color: #94a3b8; font-weight: 600;">Sin tráfico registrado hoy.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- CONTENEDOR 2: CENTRO DE ANOMALÍAS ML (OCULTO POR DEFECTO)                 -->
+<!-- ========================================================================= -->
+<div id="content-alertas" style="display: none;">
+    
+    <!-- BANNER DE ACCIÓN CRÍTICA -->
+    {% if alertas_ml %}
+    <div class="glass-card alerta-pulsando" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(153, 27, 27, 0.05) 100%); border: 1px solid rgba(239, 68, 68, 0.5); padding: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px;">
+        <div style="font-size: 48px; line-height: 1;">⚠️</div>
+        <div>
+            <h3 style="margin: 0 0 6px 0; color: #991b1b; font-weight: 900; font-size: 18px; text-transform: uppercase;">PANEL DE INTELIGENCIA ARTIFICIAL: PREDICCIONES, ANALÍTICA Y ALERTAS</h3>
+            <p style="margin: 0; color: #7f1d1d; font-size: 13px; font-weight: 600;">El motor híbrido de Machine Learning ha consolidado <strong>{{ alertas_ml | length }}</strong> reportes operativos, incluyendo proyecciones predictivas de cierre, métricas de eficiencia intradía y anomalías de agentes. Utilice esta información para la toma de decisiones estratégicas.</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-card" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); padding: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px;">
+        <div style="font-size: 40px; line-height: 1;">✅</div>
+        <div>
+            <h3 style="margin: 0 0 6px 0; color: #065f46; font-weight: 900; font-size: 16px; text-transform: uppercase;">Operación Estable</h3>
+            <p style="margin: 0; color: #047857; font-size: 13px; font-weight: 600;">No se han detectado anomalías de Machine Learning en las interacciones de chat. Todos los KPIs operan dentro de los parámetros esperados.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- TABLA DE ANOMALÍAS DE AGENTES (INTEGRADA AL DISEÑO) -->
+    <div class="glass-card" style="padding: 20px; margin-bottom: 24px; {% if alertas_ml|length > 0 %}border-top: 4px solid #ef4444;{% endif %}">
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 16px;">
+            <div></div>
+            <h6 style="text-align: center; font-weight: 900; color: #0f172a; margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Registro de Anomalías por Asesor (IF)</h6>
+            <div style="justify-self: end;">
+                <span style="background: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; border: 1px solid rgba(239, 68, 68, 0.3);">{{ alertas_ml | length }} DETECTADAS</span>
+            </div>
+        </div>
+        
+        <div style="max-height: 350px; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: center; min-width: 900px;">
+                <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 10; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);">
+                    <tr>
+                        <th style="padding: 12px 16px; font-weight: 800; color: #334155; border-bottom: 2px solid #cbd5e1;">Fecha / Hora</th>
+                        <th style="padding: 12px 16px; text-align: center; font-weight: 800; color: #334155; border-bottom: 2px solid #cbd5e1;">Agente (CC)</th>
+                        <th style="padding: 12px 16px; font-weight: 800; color: #334155; border-bottom: 2px solid #cbd5e1;">Tipo Alerta</th>
+                        <th style="padding: 12px 16px; font-weight: 800; color: #334155; border-bottom: 2px solid #cbd5e1;">Descripción Detallada</th>
+                        <th style="padding: 12px 16px; text-align: center; font-weight: 800; color: #334155; border-bottom: 2px solid #cbd5e1;">Severidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alerta in alertas_ml %}
+                    <tr class="table-hover-row" style="border-bottom: 1px solid #e2e8f0; background: {% if alerta.severidad == 'ALTA' %}rgba(254, 226, 226, 0.3){% else %}#ffffff{% endif %}; border-left: 3px solid {% if alerta.severidad == 'ALTA' %}#ef4444{% else %}#f59e0b{% endif %}; transition: background 0.2s;">
+                        <td style="padding: 10px 16px; font-weight: 700; color: #0f172a;">
+                            {{ alerta.fecha_formateada }}<br>
+                            <span style="font-size: 9px; color: #64748b; font-weight: 800;">(Chat)</span>
+                        </td>
+                        <td style="padding: 10px 16px; text-align: center; font-weight: 800; color: #00b4c8;">{{ alerta.asesor_id }}</td>
+                        <td style="padding: 10px 16px;">
+                            <span style="background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: 800; font-size: 10px;">{{ alerta.tipo_alerta }}</span>
+                        </td>
+                        <td style="padding: 10px 16px; color: #475569; font-weight: 600; text-align: left;">{{ alerta.descripcion }}</td>
+                        <td style="padding: 10px 16px; text-align: center;">
+                            <span style="background: #fef2f2; color: {% if alerta.severidad == 'ALTA' %}#ef4444{% else %}#d97706{% endif %}; padding: 4px 8px; border-radius: 4px; font-weight: 900; font-size: 10px;">{{ alerta.severidad | default('MEDIA') }}</span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 30px; text-align: center; color: #64748b; font-weight: 600;">
+                            ✨ No se registran anomalías en asesores en este corte horario.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- ⚙️ SCRIPTS (CHART.JS AESTHETICS & TABS)    -->
+<!-- ========================================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // --- LÓGICA DE ESTADO OPERATIVO (TESIS VS PRODUCCIÓN) ---
+    let operacionApagada = false;
+
+    // =====================================================================
+    // ⚙️ MODO PRODUCCIÓN REAL (Apagado por defecto para sustentación)
+    // Para activar en producción: Descomenta este bloque y comenta el Modo Tesis
+    // =====================================================================
+    /*
+    const inputFecha = document.querySelector('input[type="date"][name="fecha"]').value;
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    const fechaHoy = `${year}-${month}-${day}`;
+
+    // REGLA A: Si miramos el pasado, la operación está apagada.
+    if (inputFecha && inputFecha !== fechaHoy) {
+        operacionApagada = true;
+    } else {
+        // REGLA B: Fuera de horario laboral RRSS (ej. 16:00 a 06:00)
+        const horaActual = hoy.getHours();
+        if (horaActual >= 16 || horaActual < 6) {
+            operacionApagada = true;
+        } else {
+            // REGLA C: Inactividad total
+            const totalOfrecidas = {{ chats_pendientes }} + {{ chats_atendidos }};
+            if (totalOfrecidas === 0) {
+                operacionApagada = true;
+            }
+        }
+    }
+    */
+
+    // =====================================================================
+    // 🎓 MODO TESIS (Activo para la sustentación)
+    // Ignora el reloj del PC y confía en los datos de la base.
+    // =====================================================================
+    const totalTráfico = {{ chats_pendientes }} + {{ chats_atendidos }};
+    if (totalTráfico === 0) {
+        operacionApagada = true;
+    }
+    // =====================================================================
+
+    // --- LÓGICA DE PESTAÑAS (PANEL / ML) ---
+    function switchTab(tabName) {
+        const tabs = ['panel', 'alertas'];
+        
+        tabs.forEach(t => {
+            document.getElementById('content-' + t).style.display = (t === tabName) ? 'block' : 'none';
+            const btn = document.getElementById('tab-' + t);
+            if (t === tabName) {
+                btn.classList.add('active-tab');
+                btn.classList.remove('inactive-tab');
+            } else {
+                btn.classList.add('inactive-tab');
+                btn.classList.remove('active-tab');
+            }
+        });
+    }
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = '#64748b';
+    
+    // 1. GRÁFICA DE DONA (DISTRIBUCIÓN DE TRÁFICO)
+    {% if labels_canal|length > 0 %}
+    const ctxCanales = document.getElementById('chartCanales').getContext('2d');
+    new Chart(ctxCanales, {
+        type: 'doughnut',
+        data: {
+            labels: {{ labels_canal | tojson }},
+            datasets: [{
+                data: {{ valores_canal | tojson }},
+                backgroundColor: ['#00b4c8', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981', '#0ea5e9'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { 
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: '600' } } } 
+            }
+        }
+    });
+    {% endif %}
+
+    // 2. GRÁFICA DE EVOLUCIÓN (FLUJO CONSOLIDADO INTRADAY)
+    {% if desglose_horas|length > 0 %}
+    const labelsEvolucion = [ {% for h in desglose_horas %} "{{ h.hora_limpia }}", {% endfor %} ];
+    const dataOfrecidas = [ {% for h in desglose_horas %} {{ h.ofrecidas }}, {% endfor %} ];
+    const dataAtendidas = [ {% for h in desglose_horas %} {{ h.atendidas }}, {% endfor %} ];
+
+    const ctxEvo = document.getElementById('chartEvolucionRT');
+    if (ctxEvo) {
+        new Chart(ctxEvo.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labelsEvolucion,
+                datasets: [
+                    { type: 'bar', label: 'Chats Ofrecidos', data: dataOfrecidas, backgroundColor: 'rgba(0, 180, 200, 0.25)', borderColor: '#00b4c8', borderWidth: 1, borderRadius: 4 },
+                    { type: 'line', label: 'Chats Atendidos', data: dataAtendidas, borderColor: '#0891b2', backgroundColor: '#0891b2', borderWidth: 3, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, weight: '600' } } } }, 
+                scales: { 
+                    x: { grid: { display: false }, ticks: { font: { weight: 'bold' }, color: '#334155' } }, 
+                    y: { grid: { borderDash: [2, 4], color: 'rgba(0,0,0,0.05)' }, beginAtZero: true, ticks: { color: '#64748b' } } 
+                } 
+            }
+        });
+    }
+    {% endif %}
+
+    // 3. REFRESH AUTOMÁTICO CADA 60 SEGUNDOS (Solo si la operación está viva)
+    if (!operacionApagada) {
+        setTimeout(function(){
+            window.location.href = "/rrss/rt?segmento_filtro={{ segmento_activo }}&fecha=" + document.querySelector('input[type="date"][name="fecha"]').value;
+        }, 60000);
+    }
+</script>
+{% endblock %}

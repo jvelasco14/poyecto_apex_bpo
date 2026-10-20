@@ -2,10 +2,442 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cari AI - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari AI - Consola de Operaciones</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Flatpickr (Calendario Profesional 24h) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        :root { 
+            --cari-blue: #1c2530; --cari-teal: #3ab1a3; --bg-gray: #eef2f5; --text-dark: #333; 
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-gray); font-size: 0.85rem; }
+        .sidebar { background-color: var(--cari-blue); min-height: 100vh; width: 260px; position: fixed; color: #fff; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar-menu-container { flex-grow: 1; overflow-y: auto; }
+        .sidebar-header { padding: 15px; background-color: var(--cari-teal); font-size: 1.2rem; font-weight: bold; text-align: center; cursor: pointer; transition: background 0.2s; }
+        .sidebar-header:hover { background-color: #2e9185; }
+        .nav-link { color: #8a99a8; padding: 12px 20px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .nav-link:hover, .nav-link.active { background: #263342; color: #fff; border-left-color: var(--cari-teal); }
+        .nav-link div i { width: 25px; }
+        .submenu { background-color: #151c24; display: none; }
+        .submenu-group-title { color: #5d6d7e; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding: 10px 15px 2px 45px; font-weight: bold; }
+        .submenu a { color: #768798; padding: 8px 15px 8px 45px; display: block; text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+        .submenu a:hover { color: #fff; background-color: #1c2530; border-left: 2px solid var(--cari-teal); padding-left: 43px;}
+        .sidebar-footer { padding: 15px; background-color: #151c24; text-align: center; border-top: 1px solid #263342; }
+        .author-signature { font-size: 0.7rem; color: #5d6d7e; letter-spacing: 0.5px; line-height: 1.4; }
+        .main-wrapper { margin-left: 260px; }
+        .topbar { background: #fff; height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .profile-menu { display: flex; align-items: center; gap: 15px; }
+        .profile-menu img { width: 35px; height: 35px; border-radius: 50%; }
+        .content-area { padding: 25px; }
+        .view-section { display: none; }
+        #view-bienvenida { display: block; }
+        .card-cari { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: none; }
+        .table-responsive-real { max-height: 500px; overflow-x: auto; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .table-cari thead { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0; }
+        .table-cari th, .table-cari td { padding: 10px 14px; white-space: nowrap; }
+        .filter-bar { background: #fff; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 3px solid var(--cari-teal); }
+        .mock-header { border-left: 4px solid var(--cari-teal); padding-left: 15px; margin-bottom: 25px; }
+        .mock-stat-card { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; }
+        .mock-stat-number { font-size: 1.8rem; font-weight: bold; color: var(--cari-blue); }
+        
+        /* Controles desactivados en gris */
+        input.fecha-input:disabled { background-color: #e9ecef; cursor: not-allowed; opacity: 0.7; }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido al Dashboard Interno</h1>
-    <p>Aquí construiremos las tablas de datos y el modal de exportación en el próximo paso.</p>
+
+<div class="sidebar">
+    <div class="sidebar-header" onclick="showView('view-bienvenida')" title="Ir al Inicio"><i class="fa-solid fa-headset me-2"></i>Cari AI Mock</div>
+    <div class="sidebar-menu-container">
+        <nav class="nav flex-column mt-3">
+            <a class="nav-link" onclick="toggleSubmenu('menu-admin', 'arrow-admin')"><div><i class="fa-solid fa-gauge"></i>Administración</div><i class="fa-solid fa-angle-down small" id="arrow-admin"></i></a>
+            <div class="submenu" id="menu-admin">
+                <a href="#" onclick="showView('view-admin')"><i class="fa-solid fa-users-gear me-2"></i>Gestión de Usuarios</a>
+                <a href="#" onclick="showView('view-admin')"><i class="fa-solid fa-shield-halved me-2"></i>Roles y Permisos</a>
+            </div>
+            
+            <a class="nav-link" onclick="toggleSubmenu('menu-reportes', 'arrow-reportes')"><div><i class="fa-solid fa-database"></i>Reportes Operativos</div><i class="fa-solid fa-angle-down small" id="arrow-reportes"></i></a>
+            <div class="submenu" id="menu-reportes">
+                                
+                <div class="submenu-group-title mt-2">Migraciones</div>
+                <a href="#" onclick="showView('view-llamadas-migraciones')"><i class="fa-solid fa-phone-volume me-2"></i>Base Llamadas Migraciones</a>
+                <!-- AQUÍ AGREGAMOS EL NUEVO REPORTE AL MENÚ LATERAL -->
+                <a href="#" onclick="showView('view-ventas-migraciones')"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Base Ventas Migraciones</a>
+
+                <div class="submenu-group-title mt-2">Retenciones Outbound</div>
+                <a href="#" onclick="showView('view-rete-out')"><i class="fa-solid fa-phone-slash me-2"></i>Base Outbound (Llamada)</a>
+
+                <div class="submenu-group-title mt-2">Redes Sociales</div>
+                <a href="#" onclick="showView('view-nps-rrss')"><i class="fa-solid fa-star me-2"></i>Base NPS RRSS</a>
+                <a href="#" onclick="showView('view-tipi-rrss')"><i class="fa-solid fa-tags me-2"></i>Base Tipificaciones RRSS</a>
+                <a href="#" onclick="showView('view-chats-rrss')"><i class="fa-solid fa-hashtag me-2"></i>Chats y Monetización RRSS</a>
+
+                <hr style="border-color: #263342; margin: 10px 0;">
+                <a href="#" onclick="showView('view-exportados')"><i class="fa-solid fa-box-archive me-2"></i>Reportes Exportados</a>
+            </div>
+            
+            <a class="nav-link" onclick="toggleSubmenu('menu-config', 'arrow-config')"><div><i class="fa-solid fa-gears"></i>Configuración</div><i class="fa-solid fa-angle-down small" id="arrow-config"></i></a>
+            <div class="submenu" id="menu-config">
+                <a href="#" onclick="showView('view-config')"><i class="fa-solid fa-sliders me-2"></i>Ajustes Generales</a>
+                <a href="#" onclick="showView('view-config')"><i class="fa-solid fa-plug me-2"></i>Conexiones API</a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="author-signature">
+            <i class="fa-solid fa-laptop-code text-secondary mb-1"></i><br>
+            <strong>Juan Velasco</strong><br>Proyecto de Grado
+        </div>
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="topbar">
+        <div class="text-muted fw-medium"><i class="fa-regular fa-calendar-days me-1"></i> Corte Transaccional: <span class="badge bg-info text-dark ms-1">{{ hora_simulacion }}</span></div>
+        <div class="profile-menu">
+            <i class="fa-regular fa-bell text-muted fs-5"></i>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" data-bs-toggle="dropdown">
+                    <img src="https://ui-avatars.com/api/?name={{ usuario }}&background=3ab1a3&color=fff" alt="User">
+                    <span class="ms-2 fw-bold small">{{ usuario.upper() }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li><a class="dropdown-item" href="#" onclick="showView('view-perfil')"><i class="fa-solid fa-user me-2"></i> Mi Perfil</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        
+        <div id="view-bienvenida" class="view-section text-center mt-5 pt-5">
+            <i class="fa-solid fa-folder-open text-muted mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
+            <h3 class="fw-bold text-muted">Consola de Extracción de Datos</h3>
+            <p class="text-muted">Despliegue el menú "Reportes Operativos" a la izquierda para consultar la data cruda de las campañas.</p>
+        </div>
+
+        <!-- 1. CHAT CD DIARIO -->
+        <!-- 2. ENCUESTAS CD DIARIO -->
+        <!-- 3. LLAMADAS MIGRACIONES -->
+        <div id="view-llamadas-migraciones" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-phone-volume text-secondary me-2"></i>Base Llamadas Migraciones</h5>
+            <div class="filter-bar">
+                <form action="/generar_reporte" method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="tipo_reporte" value="llamadas_migraciones">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Rango de Fecha y Hora (Calendario)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">Desde</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                            <span class="input-group-text bg-light text-muted">Hasta</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Rango de Extracción (RPA)</label>
+                        <select class="form-select form-select-sm" name="rango_fecha" onchange="toggleDateInputs(this)"><option value="hora">Última Hora</option><option value="dia">Día de Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="fecha_especifica" class="fw-bold text-primary" selected>Fecha Específica (Calendario)</option></select>
+                    </div><div class="col-md-2"></div><div class="col-md-2"><button type="submit" class="btn btn-sm text-white w-100" style="background-color: var(--cari-teal);"><i class="fa-solid fa-gears me-1"></i>Generar Reporte</button></div>
+                </form>
+            </div>
+            <div class="card card-cari overflow-hidden"><div class="table-responsive-real"><table class="table table-hover table-cari m-0"><thead><tr>{% for col in cab_migraciones %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in dat_migraciones %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+        </div>
+
+        <!-- 3.5. VENTAS MIGRACIONES (NUEVO REPORTE) -->
+        <div id="view-ventas-migraciones" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-file-invoice-dollar text-secondary me-2"></i>Base Ventas Migraciones</h5>
+            <div class="filter-bar">
+                <form action="/generar_reporte" method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="tipo_reporte" value="ventas_migraciones">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Rango de Fecha y Hora (Calendario)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">Desde</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                            <span class="input-group-text bg-light text-muted">Hasta</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Rango de Extracción (RPA)</label>
+                        <select class="form-select form-select-sm" name="rango_fecha" onchange="toggleDateInputs(this)"><option value="hora">Última Hora</option><option value="dia">Día de Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="fecha_especifica" class="fw-bold text-primary" selected>Fecha Específica (Calendario)</option></select>
+                    </div><div class="col-md-2"></div><div class="col-md-2"><button type="submit" class="btn btn-sm text-white w-100" style="background-color: var(--cari-teal);"><i class="fa-solid fa-gears me-1"></i>Generar Reporte</button></div>
+                </form>
+            </div>
+            <div class="card card-cari overflow-hidden"><div class="p-3 bg-light border-bottom small text-muted fw-medium">Vista previa de los datos reales almacenados en el servidor</div><div class="table-responsive-real"><table class="table table-hover table-cari m-0"><thead><tr>{% for col in cab_ventas %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in dat_ventas %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+        </div>
+
+        <!-- 4. RETENCIONES OUTBOUND -->
+        <div id="view-rete-out" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-phone-slash text-secondary me-2"></i>Base Outbound (Retenciones)</h5>
+            <div class="filter-bar">
+                <form action="/generar_reporte" method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="tipo_reporte" value="rete_out">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Rango de Fecha y Hora (Calendario)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">Desde</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                            <span class="input-group-text bg-light text-muted">Hasta</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Rango de Extracción (RPA)</label>
+                        <select class="form-select form-select-sm" name="rango_fecha" onchange="toggleDateInputs(this)"><option value="hora">Última Hora</option><option value="dia">Día de Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="fecha_especifica" class="fw-bold text-primary" selected>Fecha Específica (Calendario)</option></select>
+                    </div><div class="col-md-2"></div><div class="col-md-2"><button type="submit" class="btn btn-sm text-white w-100" style="background-color: var(--cari-teal);"><i class="fa-solid fa-gears me-1"></i>Generar Reporte</button></div>
+                </form>
+            </div>
+            <div class="card card-cari overflow-hidden"><div class="table-responsive-real"><table class="table table-hover table-cari m-0"><thead><tr>{% for col in cab_rete_out %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in dat_rete_out %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+        </div>
+
+        <!-- 5. NPS RRSS -->
+        <div id="view-nps-rrss" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-star text-secondary me-2"></i>Base NPS (Redes Sociales)</h5>
+            <div class="filter-bar">
+                <form action="/generar_reporte" method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="tipo_reporte" value="nps_rrss">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Rango de Fecha y Hora (Calendario)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">Desde</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                            <span class="input-group-text bg-light text-muted">Hasta</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Rango de Extracción (RPA)</label>
+                        <select class="form-select form-select-sm" name="rango_fecha" onchange="toggleDateInputs(this)"><option value="hora">Última Hora</option><option value="dia">Día de Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="fecha_especifica" class="fw-bold text-primary" selected>Fecha Específica (Calendario)</option></select>
+                    </div><div class="col-md-2"></div><div class="col-md-2"><button type="submit" class="btn btn-sm text-white w-100" style="background-color: var(--cari-teal);"><i class="fa-solid fa-gears me-1"></i>Generar Reporte</button></div>
+                </form>
+            </div>
+            <div class="card card-cari overflow-hidden"><div class="table-responsive-real"><table class="table table-hover table-cari m-0"><thead><tr>{% for col in cab_nps_rrss %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in dat_nps_rrss %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+        </div>
+
+        <!-- 6. TIPIFICACIONES RRSS -->
+        <div id="view-tipi-rrss" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-tags text-secondary me-2"></i>Base Tipificaciones (Redes Sociales)</h5>
+            <div class="filter-bar">
+                <form action="/generar_reporte" method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="tipo_reporte" value="tipificaciones_rrss">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Rango de Fecha y Hora (Calendario)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">Desde</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                            <span class="input-group-text bg-light text-muted">Hasta</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Rango de Extracción (RPA)</label>
+                        <select class="form-select form-select-sm" name="rango_fecha" onchange="toggleDateInputs(this)"><option value="hora">Última Hora</option><option value="dia">Día de Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="fecha_especifica" class="fw-bold text-primary" selected>Fecha Específica (Calendario)</option></select>
+                    </div><div class="col-md-2"></div><div class="col-md-2"><button type="submit" class="btn btn-sm text-white w-100" style="background-color: var(--cari-teal);"><i class="fa-solid fa-gears me-1"></i>Generar Reporte</button></div>
+                </form>
+            </div>
+            <div class="card card-cari overflow-hidden"><div class="table-responsive-real"><table class="table table-hover table-cari m-0"><thead><tr>{% for col in cab_tipi_rrss %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in dat_tipi_rrss %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+        </div>
+
+        <!-- 7. CHATS Y MONETIZACIÓN RRSS -->
+        <div id="view-chats-rrss" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-hashtag text-secondary me-2"></i>Chats y Monetización (Redes Sociales)</h5>
+            <div class="filter-bar">
+                <form action="/generar_reporte" method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="tipo_reporte" value="chats_monetizacion_rrss">
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Rango de Fecha y Hora (Calendario)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">Desde</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                            <span class="input-group-text bg-light text-muted">Hasta</span><input type="text" class="form-control fecha-input" placeholder="Seleccione fecha y hora">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Rango de Extracción (RPA)</label>
+                        <select class="form-select form-select-sm" name="rango_fecha" onchange="toggleDateInputs(this)"><option value="hora">Última Hora</option><option value="dia">Día de Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="fecha_especifica" class="fw-bold text-primary" selected>Fecha Específica (Calendario)</option></select>
+                    </div><div class="col-md-2"></div><div class="col-md-2"><button type="submit" class="btn btn-sm text-white w-100" style="background-color: var(--cari-teal);"><i class="fa-solid fa-gears me-1"></i>Generar Reporte</button></div>
+                </form>
+            </div>
+            <div class="card card-cari overflow-hidden"><div class="table-responsive-real"><table class="table table-hover table-cari m-0"><thead><tr>{% for col in cab_chats_rrss %}<th>{{ col }}</th>{% endfor %}</tr></thead><tbody>{% for row in dat_chats_rrss %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div>
+        </div>
+
+        <!-- 8. REPORTES EXPORTADOS (BANDEJA INTELIGENTE) -->
+        <div id="view-exportados" class="view-section">
+            <h5 class="mb-3 fw-bold text-dark"><i class="fa-solid fa-box-archive text-secondary me-2"></i>Bandeja de descargas (Historial)</h5>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-white rounded shadow-sm border border-light">
+                <div class="d-flex gap-2 align-items-center">
+                    <select id="filtro-historial" class="form-select form-select-sm" style="width: 250px;">
+                        <option value="dia" selected>Registros Último Día (Predeterminado)</option>
+                        <option value="hora">Registros Última Hora</option>
+                        <option value="semana">Registros Última Semana</option>
+                    </select>
+                    <button type="button" onclick="filtrarHistorial()" class="btn btn-sm btn-outline-secondary fw-bold px-3"><i class="fa-solid fa-magnifying-glass me-1"></i>Buscar</button>
+                </div>
+                <form action="/borrar_historial" method="POST" class="m-0" onsubmit="return confirm('¿Está seguro de eliminar todos los registros del historial?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger fw-bold"><i class="fa-solid fa-trash-can me-1"></i>Borrar Historial</button>
+                </form>
+            </div>
+
+            <div class="card card-cari overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover table-cari align-middle m-0" id="tabla-historial">
+                        <thead>
+                            <tr><th>ID Job</th><th>Nombre del Archivo Generado</th><th>Fecha de Solicitud</th><th>Estado</th><th class="text-center">Enlace de Descarga</th></tr>
+                        </thead>
+                        <tbody>
+                            {% if reportes %}
+                                {% for rep in reportes %}
+                                <tr class="historial-row" data-hora="{{ rep.hora_corte }}">
+                                    <td class="text-muted">#{{ rep.id }}</td>
+                                    <td class="fw-bold text-dark">{{ rep.nombre }}</td>
+                                    <td>{{ rep.fecha }}</td>
+                                    <td><span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i>{{ rep.estado }}</span></td>
+                                    <td class="text-center">
+                                        <a href="/descargar_csv/{{ rep.id }}/{{ rep.tipo }}" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem;">
+                                            Descargar CSV <i class="fa-solid fa-file-csv ms-1 fs-6"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="5" class="text-center py-5 text-muted">La bandeja está vacía. Diríjase a los módulos operativos de la izquierda y genere un reporte.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTAS FALSAS -->
+        <div id="view-perfil" class="view-section">
+            <div class="mock-header"><h4 class="fw-bold text-dark mb-0">Mi Perfil</h4><p class="text-muted small mb-0">Información corporativa de la cuenta activa</p></div>
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <div class="card card-cari p-4 mb-3">
+                        <img src="https://ui-avatars.com/api/?name={{ usuario }}&background=3ab1a3&color=fff&size=120" alt="Avatar" class="rounded-circle mx-auto mb-3" style="width: 120px;">
+                        <h5 class="fw-bold">{{ usuario.upper() }}</h5><p class="text-muted small mb-3">Administrador del Sistema | Apex BPO</p><span class="badge bg-success w-50 mx-auto">Conectado</span>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card card-cari p-4">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-address-card me-2"></i>Detalles de la Cuenta</h6>
+                        <div class="row mb-3"><div class="col-sm-4 text-muted small fw-bold">Correo Electrónico</div><div class="col-sm-8">{{ usuario|lower }}@apex.com</div></div>
+                        <div class="row mb-3"><div class="col-sm-4 text-muted small fw-bold">Sede Operativa</div><div class="col-sm-8">Bogotá, Colombia</div></div>
+                        <div class="row mb-3"><div class="col-sm-4 text-muted small fw-bold">Último Inicio de Sesión</div><div class="col-sm-8">Hoy, 06:00 am (Hora Servidor)</div></div>
+                        <button class="btn btn-sm btn-outline-secondary mt-2"><i class="fa-solid fa-key me-2"></i>Cambiar Contraseña</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-admin" class="view-section">
+            <div class="mock-header"><h4 class="fw-bold text-dark mb-0">Gestión de Usuarios y Roles</h4><p class="text-muted small mb-0">Panel de control administrativo (Vista Simulada)</p></div>
+            <div class="row mb-4"><div class="col-md-4"><div class="mock-stat-card"><div class="mock-stat-number">142</div><div class="text-muted small">Usuarios Activos</div></div></div><div class="col-md-4"><div class="mock-stat-card"><div class="mock-stat-number">3</div><div class="text-muted small">Roles Definidos</div></div></div><div class="col-md-4"><div class="mock-stat-card"><div class="mock-stat-number text-success">98%</div><div class="text-muted small">Uptime del Servidor</div></div></div></div>
+            <div class="card card-cari p-4 text-center text-muted"><i class="fa-solid fa-lock mb-2 fs-2" style="color: #cbd5e1;"></i><p>Módulo bloqueado en el entorno de simulación.<br>La creación de nuevos usuarios debe realizarse desde el servidor centralizado de Cari AI.</p></div>
+        </div>
+
+        <div id="view-config" class="view-section">
+            <div class="mock-header"><h4 class="fw-bold text-dark mb-0">Ajustes Generales del Sistema</h4><p class="text-muted small mb-0">Configuración global de la consola (Vista Simulada)</p></div>
+            <div class="card card-cari p-4">
+                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="switch1" checked><label class="form-check-label ms-2" for="switch1">Activar Notificaciones de Extracción (RPA)</label></div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="switch2"><label class="form-check-label ms-2" for="switch2">Forzar Modo Oscuro en Interfaz</label></div>
+                <div class="form-check form-switch mb-4"><input class="form-check-input" type="checkbox" id="switch3" checked><label class="form-check-label ms-2" for="switch3">Auditoría automática de descargas (Log)</label></div>
+                <button class="btn btn-sm text-white" style="background-color: var(--cari-teal); width: 200px;">Guardar Preferencias</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Scripts de Bootstrap y Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+
+<script>
+    // 1. Inicializar el calendario Flatpickr en todos los inputs con clase 'fecha-input'
+    const dateInputs = document.querySelectorAll('.fecha-input');
+    dateInputs.forEach(input => {
+        flatpickr(input, {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,          // Forzar formato de 24 horas
+            minuteIncrement: 1,       // Reduce el scroll a 1 minuto por paso
+            locale: "es",             // Configuración en español
+            allowInput: true
+        });
+    });
+
+    function toggleSubmenu(menuId, arrowId) {
+        var menu = document.getElementById(menuId);
+        var arrow = document.getElementById(arrowId);
+        if (menu.style.display === "block") {
+            menu.style.display = "none";
+            if(arrow) arrow.className = "fa-solid fa-angle-down small";
+        } else {
+            var submenus = document.getElementsByClassName('submenu');
+            var arrows = document.querySelectorAll('.nav-link i.fa-angle-up');
+            for(var i=0; i<submenus.length; i++) submenus[i].style.display = "none";
+            for(var i=0; i<arrows.length; i++) arrows[i].className = "fa-solid fa-angle-down small";
+            menu.style.display = "block";
+            if(arrow) arrow.className = "fa-solid fa-angle-up small";
+        }
+    }
+
+    function showView(viewId) {
+        var views = document.getElementsByClassName('view-section');
+        for (var i = 0; i < views.length; i++) { views[i].style.display = 'none'; }
+        document.getElementById(viewId).style.display = 'block';
+    }
+
+    // 2. Activa o desactiva el calendario Flatpickr de forma elegante
+    function toggleDateInputs(selectElement) {
+        var form = selectElement.closest('form');
+        var dateInputs = form.querySelectorAll('.fecha-input');
+        var isSpecificDate = selectElement.value === 'fecha_especifica';
+        
+        dateInputs.forEach(input => {
+            if (input._flatpickr) {
+                // Si la opción no es Fecha Específica, deshabilita y limpia
+                input.disabled = !isSpecificDate;
+                if (!isSpecificDate) {
+                    input._flatpickr.clear();
+                }
+            }
+        });
+    }
+
+    // 3. Función de filtrado inteligente para la bandeja de historial
+    function filtrarHistorial() {
+        const filtro = document.getElementById('filtro-historial').value;
+        const filas = document.querySelectorAll('.historial-row');
+        if (filas.length === 0) return;
+
+        if (filtro === 'dia' || filtro === 'semana') {
+            filas.forEach(fila => fila.style.display = '');
+        } else if (filtro === 'hora') {
+            let maxHora = -1;
+            filas.forEach(fila => {
+                let hora = parseInt(fila.getAttribute('data-hora'));
+                if (hora > maxHora) maxHora = hora;
+            });
+            
+            let maxHoraStr = maxHora.toString().padStart(2, '0');
+            filas.forEach(fila => {
+                if (fila.getAttribute('data-hora') === maxHoraStr) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    window.onload = function() {
+        if (document.referrer.includes("/generar_reporte") || window.location.href.includes("borrar_historial")) {
+            showView('view-exportados');
+            document.getElementById('menu-reportes').style.display = "block";
+            document.getElementById('arrow-reportes').className = "fa-solid fa-angle-up small";
+        }
+    }
+</script>
 </body>
 </html>
