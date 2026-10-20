@@ -4,6 +4,11 @@ Este repositorio contiene el código fuente y la arquitectura completa del proye
 
 El ecosistema está diseñado bajo el patrón MLOps y Arquitectura Lambda, integrando RPA (Playwright), procesamiento de datos (Pandas), almacenamiento en la nube (Supabase/PostgreSQL), Inteligencia Artificial (Scikit-Learn) y un Dashboard Web (FastAPI + Jinja2).
 
+💡 **NOTA IMPORTANTE SOBRE LA VISUALIZACIÓN:** 
+La información del día simulado **ya se encuentra pre-cargada y lista para que la consulte directamente en la aplicación**. 
+* Si desea **ver la aplicación inmediatamente** con los datos y gráficas finales, simplemente diríjase a la sección **"Guía de Ejecución"** y ejecute únicamente el **Paso 2**.
+* Si desea evaluar cómo la automatización extrae, limpia y procesa los datos desde cero, siga todas las instrucciones desde el apartado "Requisitos Previos" para borrar la base de datos y ejecutar el ciclo completo.
+
 ---
 
 ## 📁 Estructura del Proyecto
@@ -29,19 +34,17 @@ La carpeta **`archivos de referencia/`** NO forma parte del código ejecutable d
 
 ---
 
-## 🛠️ Requisitos Previos y Preparación del Entorno
+## 🛠️ Requisitos Previos (Para simulación desde cero)
 
-Para ejecutar la simulación y ver la automatización operando "en vivo", es estrictamente necesario preparar el entorno local y limpiar la base de datos en la nube para evitar colisiones de datos históricos.
+Para ejecutar la simulación desde cero y ver la automatización operando "en vivo", es estrictamente necesario preparar el entorno local y limpiar la base de datos en la nube para evitar colisiones de datos.
 
 ### 1. Preparación de Carpetas Locales
-Antes de ejecutar el sistema, asegúrese de que las siguientes carpetas temporales estén **COMPLETAMENTE VACÍAS**:
+Asegúrese de que las siguientes carpetas temporales estén **COMPLETAMENTE VACÍAS**:
 *   `descargas_bot/`
 *   `historico_procesados/`
 
 ### 2. Purga de la Base de Datos (Supabase)
-El sistema emulará la operación del día **26 de Junio de 2025**. Para que la simulación funcione correctamente y la IA tenga una "pizarra limpia" para predecir, ejecute el siguiente bloque de sentencias SQL en el editor de PostgreSQL de su clúster en Supabase.
-
-Esto vaciará las tablas de transacciones intradía y eliminará los registros históricos que colisionen con la fecha de la prueba:
+Ejecute el siguiente bloque de sentencias SQL en el editor de PostgreSQL de su clúster en Supabase para vaciar las tablas y permitir que la simulación inicie desde cero:
 
 ```sql
 -- 1. Vaciar tablas vivas (Capa Speed)
@@ -58,7 +61,7 @@ DELETE FROM public.hist_base_llamadas_migraciones WHERE date = '2025-05-26';
 DELETE FROM public.hist_base_ventas_migraciones WHERE fecha_de_venta = '2025-06-26';
 DELETE FROM public.hist_base_rete_out WHERE date = '2025-06-26';
 
--- Limpieza de históricos RRSS (casteo a texto por seguridad)
+-- Limpieza de históricos RRSS
 DELETE FROM public.hist_chats_monetizacion_rrss WHERE CAST(fecha_inicio AS TEXT) LIKE '2025-06-26%';
 DELETE FROM public.hist_base_nps_rrss WHERE CAST(fecha_de_registro AS TEXT) LIKE '2025-06-26%';
 DELETE FROM public.hist_base_tipificaciones_rrss WHERE CAST(fecha_de_registro AS TEXT) LIKE '2025-06-26%';
@@ -73,47 +76,33 @@ DELETE FROM public.ml_alertas_macro WHERE call_date = '2025-06-26';
 
 ---
 
-## 🏃‍♂️ Guía de Ejecución de la Simulación
-
-La demostración del sistema requiere levantar dos servidores paralelos (el Mock de Cari AI y el Dashboard) y finalmente iniciar el Orquestador Autónomo. Se recomienda abrir **3 terminales independientes** en su editor de código (ej. VS Code).
+## 🏃‍♂️ Guía de Ejecución de la Aplicación
 
 ### Paso 1: Levantar el Entorno Emulado (Mock Server)
-Dado que no se tiene acceso directo al proveedor original, el bot extraerá la data de un servidor local emulado.
+*(Solo necesario si ejecutará la simulación desde cero).*
 1. Abra la **Terminal 1**.
 2. Active su entorno virtual (`venv\Scripts\activate` en Windows).
-3. Navegue a la carpeta de datos internos:
-   ```bash
-   cd base_datos_interna
-   ```
-4. Inicie el servidor HTTP de Python en el puerto 8080:
-   ```bash
-   python -m http.server 8080
-   ```
-   *(Deje esta terminal corriendo en segundo plano).*
+3. Navegue a la carpeta de datos internos: `cd base_datos_interna`
+4. Inicie el servidor HTTP de Python en el puerto 8080: `python -m http.server 8080`
 
-### Paso 2: Desplegar el Dashboard Web (FastAPI)
-Para poder visualizar los datos a medida que el orquestador los procesa, debe encender el servidor web.
+### Paso 2: Desplegar el Dashboard Web (Visualización de la Aplicación)
+Para poder visualizar los datos e interactuar con la aplicación.
 1. Abra la **Terminal 2**.
 2. Active su entorno virtual.
-3. Ejecute el servidor Uvicorn:
-   ```bash
-   python app.py
-   ```
-4. Abra su navegador web y diríjase a `http://localhost:8000`. Podrá visualizar el Dashboard (inicialmente en ceros, ya que las tablas acaban de ser truncadas).
+3. Ejecute el servidor Uvicorn: `python app.py`
+4. Abra su navegador web y diríjase a **`http://localhost:8000`**. *(Si no borró la base de datos, verá la plataforma completamente funcional con los datos pre-cargados).*
 
 ### Paso 3: Iniciar la Automatización (El Orquestador)
-Este es el paso final. Al ejecutar este script, el sistema cobrará vida, simulará el paso del tiempo operativo y llenará la base de datos automáticamente.
+*(Solo necesario si desea ver la simulación en vivo llenando el Dashboard desde cero).*
 1. Abra la **Terminal 3**.
 2. Active su entorno virtual.
-3. Ejecute el orquestador:
-   ```bash
-   python bucle_maestro.py
-   ```
+3. Ejecute el orquestador: `python bucle_maestro.py`
+
+---
 
 ### ⚙️ ¿Cómo funciona la simulación (Modo Tesis)?
-El `bucle_maestro.py` está configurado actualmente en un modo de simulación acelerada ("Modo Tesis") para facilitar su evaluación sin tener que esperar horas reales. Su comportamiento es el siguiente:
-
+El `bucle_maestro.py` está configurado actualmente en un modo de simulación acelerada ("Modo Tesis") para facilitar su evaluación:
 1. **Iteración Acelerada:** En lugar de esperar 60 minutos reales entre cada corte horario, el orquestador avanza a la siguiente hora tras una **pausa de solo 5 segundos** (procesando rápidamente desde las 08:00 hasta las 17:00).
-2. **Ejecución en Cadena:** Durante cada ciclo rápido, el RPA descarga los 6 reportes `.csv` del *localhost:8080*, el ETL los limpia y los sube a Supabase, y el Motor IA escanea las anomalías y genera proyecciones.
-3. **Visualización en Vivo:** Si usted recarga constantemente su navegador en `localhost:8000`, verá cómo los gráficos se construyen de forma progresiva, el embudo va creciendo y las alertas de la Inteligencia Artificial comienzan a aparecer en la interfaz hora tras hora.
-4. **Protocolo de Cierre y Reinicio Infinito:** Al simular la hora de las 17:00, el sistema ejecutará el "Protocolo de Cierre (EOD)", volcando los datos y perfilando a los agentes con *K-Means*. Posteriormente, el sistema entrará en un **estado de reposo de exactamente 5 minutos**. Al finalizar esos 5 minutos, el orquestador ejecutará una purga automática para limpiar la información y **volverá a iniciar la simulación desde las 08:00 am**, creando un bucle demostrativo continuo.
+2. **Ejecución en Cadena:** Durante cada ciclo rápido, el RPA descarga los reportes, el ETL los limpia y los sube a Supabase, y el Motor IA escanea anomalías.
+3. **Visualización en Vivo:** Si recarga su navegador en `localhost:8000`, verá cómo los gráficos se construyen de forma progresiva.
+4. **Protocolo de Cierre y Reinicio Infinito:** Al simular las 17:00, el sistema ejecutará el "Protocolo de Cierre (EOD)", entrará en un **estado de reposo de exactamente 5 minutos**, limpiará la base de datos automáticamente y **volverá a iniciar la simulación** desde las 08:00 am, creando un bucle demostrativo continuo.
